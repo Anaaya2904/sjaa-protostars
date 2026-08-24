@@ -24,7 +24,7 @@ const newsletters = [
         date: "August 13, 2026 | By Anaaya Mashru",
         description: "Read about Anaaya's journey using NASA's open-source archives and the transit method to explore deep space and study exoplanets like the habitable zone candidate TOI-4633 c.",
         // 👇 PASTE YOUR GOOGLE DRIVE LINK RIGHT HERE 👇
-        link: "file:///Users/anaayamashru/Downloads/Beyond_the_Light_Curve%20(1).pdf"
+        link: "https://drive.google.com/file/d/1pqzeNQcf1QdGMW7dFcfQQH7WsXPRHeSS/view?usp=sharing"
     }
 ];
 
