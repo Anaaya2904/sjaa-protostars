@@ -23,7 +23,7 @@ const newsletters = [
         title: "Beyond the Light Curve: Hunting Exoplanets",
         date: "August 13, 2026 | By Anaaya Mashru",
         description: "Read about Anaaya's journey using NASA's open-source archives and the transit method to explore deep space and study exoplanets like the habitable zone candidate TOI-4633 c.",
-        link: "Beyond_The_Light_Curve.pdf"
+        link: "Beyond the Light Curve_ My Journey Hunting Exoplanets in NASA's Archives.pdf"
     }
 ];
 
@@ -104,7 +104,7 @@ function loadOfficers() {
         snapshot.forEach(doc => {
             const officer = doc.data();
             container.innerHTML += `
-                <div class="card officer-card" onclick="openBioModal('${doc.id}', '${officer.name}', '${officer.role}', '${officer.bio.replace(/'/g, "\\'")}', '${officer.image}')">
+                <div class="card officer-card" onclick="openBioModal('${doc.id}', '${officer.name}', '${officer.role}', '${(officer.bio || "").replace(/'/g, "\\'")}', '${officer.image}')">
                     <h3>${officer.name}</h3>
                     <p>${officer.role}</p>
                 </div>`;
@@ -200,8 +200,9 @@ function deletePhoto(id) {
     }
 }
 
-// Initial Database Setup (Creates the officers list on first load)
+// Initial Database Setup (Bundled save to fix glitching)
 function seedDatabase() {
+    const batch = db.batch();
     const initialOfficers = [
         { id: "p1", order: 1, name: "Vipanchi Rawat", role: "President", image: "", bio: "" },
         { id: "p2", order: 2, name: "Creighton Voon", role: "Co-VP", image: "", bio: "" },
@@ -213,8 +214,11 @@ function seedDatabase() {
     ];
     
     initialOfficers.forEach(off => {
-        db.collection('officers').doc(off.id).set(off);
+        const docRef = db.collection('officers').doc(off.id);
+        batch.set(docRef, off);
     });
+
+    batch.commit().then(() => console.log("All officers saved securely!"));
 }
 
 // Boot up
