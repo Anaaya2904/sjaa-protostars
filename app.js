@@ -16,19 +16,35 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* =========================================
-   HARDCODED DATA (Newsletters stay here)
+   HARDCODED DATA
    ========================================= */
 const newsletters = [
     {
         title: "Beyond the Light Curve: Hunting Exoplanets",
         date: "August 13, 2026 | By Anaaya Mashru",
         description: "Read about Anaaya's journey using NASA's open-source archives and the transit method to explore deep space and study exoplanets like the habitable zone candidate TOI-4633 c.",
-        link: "https://drive.google.com/file/d/1pqzeNQcf1QdGMW7dFcfQQH7WsXPRHeSS/view?usp=sharing"
+        // 👇 PASTE YOUR GOOGLE DRIVE LINK RIGHT HERE 👇
+        link: "file:///Users/anaayamashru/Downloads/Beyond_the_Light_Curve%20(1).pdf"
     }
 ];
 
 let currentEditingOfficerId = null; 
 let isLoggedIn = false;
+let isSeeding = false; // Prevents the database from glitching into an infinite loop
+
+/* =========================================
+   ANTI-GLITCH FIXES (Stops the page jumping)
+   ========================================= */
+// This intercepts the navigation clicks so the page doesn't forcefully jump to the top
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (link.getAttribute('href') === '#') {
+                e.preventDefault(); 
+            }
+        });
+    });
+});
 
 /* =========================================
    AUTHENTICATION & SECURITY
@@ -69,18 +85,19 @@ function logout() {
 }
 
 /* =========================================
-   WEBSITE LOGIC
+   WEBSITE LOGIC (Built to stop flickering)
    ========================================= */
 function showPage(pageId) {
     document.querySelectorAll('.page-section').forEach(page => page.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth, non-glitchy scrolling
 }
 
 function loadNewsletters() {
     const container = document.getElementById('newsletter-container');
-    container.innerHTML = "";
+    let htmlString = ""; // Builds everything off-screen first to stop flickering
     newsletters.forEach(news => {
-        container.innerHTML += `
+        htmlString += `
             <div class="card newsletter-card">
                 <h3>${news.title}</h3>
                 <p style="font-size: 0.9em; color: #9ca3af; margin-bottom: 10px;">${news.date}</p>
@@ -88,27 +105,32 @@ function loadNewsletters() {
                 <a href="${news.link}" target="_blank">Read Newsletter</a>
             </div>`;
     });
+    container.innerHTML = htmlString;
 }
 
 // Fetch Officers from Firebase
 function loadOfficers() {
     db.collection('officers').orderBy('order').onSnapshot(snapshot => {
         const container = document.getElementById('officers-container');
-        container.innerHTML = "";
         
         if(snapshot.empty) {
-            seedDatabase(); 
+            if(!isSeeding) {
+                isSeeding = true;
+                seedDatabase(); 
+            }
             return;
         }
 
+        let htmlString = ""; // Builds everything off-screen first
         snapshot.forEach(doc => {
             const officer = doc.data();
-            container.innerHTML += `
+            htmlString += `
                 <div class="card officer-card" onclick="openBioModal('${doc.id}', '${officer.name}', '${officer.role}', '${(officer.bio || "").replace(/'/g, "\\'")}', '${officer.image}')">
                     <h3>${officer.name}</h3>
                     <p>${officer.role}</p>
                 </div>`;
         });
+        container.innerHTML = htmlString; // Paints it to the screen all at once
     }, error => {
         console.error("Error fetching officers:", error);
         document.getElementById('officers-container').innerHTML = "<p style='color: #ef4444;'>Could not load officers. Ensure database rules are set.</p>";
@@ -162,21 +184,22 @@ function saveOfficerUpdate() {
 function loadGallery() {
     db.collection('gallery').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
         const container = document.getElementById('gallery-container');
-        container.innerHTML = "";
         
         if(snapshot.empty) {
             container.innerHTML = "<p style='color: #9ca3af;'>No photos yet.</p>";
             return;
         }
 
+        let htmlString = ""; // Builds everything off-screen first
         snapshot.forEach(doc => {
             let deleteBtn = isLoggedIn ? `<button class="delete-photo-btn" onclick="deletePhoto('${doc.id}')">Delete Photo</button>` : "";
-            container.innerHTML += `
+            htmlString += `
                 <div>
                     <img src="${doc.data().url}" alt="SJAA Event">
                     ${deleteBtn}
                 </div>`;
         });
+        container.innerHTML = htmlString;
     });
 }
 
@@ -200,7 +223,7 @@ function deletePhoto(id) {
     }
 }
 
-// Initial Database Setup (Bundled save to fix glitching)
+// Initial Database Setup (Bundled save)
 function seedDatabase() {
     const batch = db.batch();
     const initialOfficers = [
@@ -218,7 +241,10 @@ function seedDatabase() {
         batch.set(docRef, off);
     });
 
-    batch.commit().then(() => console.log("All officers saved securely!"));
+    batch.commit().then(() => {
+        console.log("All officers saved securely!");
+        isSeeding = false;
+    });
 }
 
 // Boot up
