@@ -23,7 +23,7 @@ const newsletters = [
         title: "Beyond the Light Curve: Hunting Exoplanets",
         date: "August 13, 2026 | By Anaaya Mashru",
         description: "Read about Anaaya's journey using NASA's open-source archives and the transit method to explore deep space and study exoplanets like the habitable zone candidate TOI-4633 c.",
-        link: "Beyond the Light Curve.pdf"
+        link: "Beyond_the_Light_Curve.pdf"
     }
 ];
 
