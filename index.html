@@ -16,6 +16,7 @@
             <li><a href="#" onclick="showPage('home')">Home</a></li>
             <li><a href="#" onclick="showPage('newsletters')">Newsletters</a></li>
             <li><a href="#" onclick="showPage('events')">Volunteer & Events</a></li>
+            <li><a href="#" id="logout-btn" style="display: none; color: #f87171;" onclick="logout()">Logout</a></li>
         </ul>
     </nav>
 
@@ -28,23 +29,22 @@
 
         <div class="container">
             <h2>Meet Our Officers</h2>
-            <div class="officers-grid">
-                <div class="card"><h3>Vipanchi Rawat</h3><p>President</p></div>
-                <div class="card"><h3>Creighton Voon</h3><p>Co-VP</p></div>
-                <div class="card"><h3>Anaaya Mashru</h3><p>Co-VP</p></div>
-                <div class="card"><h3>Lucy Lai</h3><p>Activities Commissioner</p></div>
-                <div class="card"><h3>Valeriya Tomkiv</h3><p>Outreach Coordinator</p></div>
-                <div class="card"><h3>Neha Meher</h3><p>Co-Director of Research</p></div>
-                <div class="card"><h3>Isabelle Niu</h3><p>Co-Director of Research</p></div>
+            <p style="margin-bottom: 20px; color: #9ca3af;">Click on an officer to read their bio!</p>
+            <div id="officers-container" class="officers-grid">
+                <p>Loading officers from secure database...</p>
             </div>
 
-            <h2>Youth Club in Action</h2>
-            <p>Check out what our youth members have been up to!</p>
-            <div class="gallery">
-                <!-- Replace src with your actual image links later -->
-                <img src="https://via.placeholder.com/300x200?text=Star+Party" alt="Youth Club Event">
-                <img src="https://via.placeholder.com/300x200?text=Telescope+Training" alt="Telescope Training">
-                <img src="https://via.placeholder.com/300x200?text=Research+Meeting" alt="Research Meeting">
+            <h2 style="margin-top: 50px;">Youth Club in Action</h2>
+            
+            <!-- Admin Photo Adder (Hidden by default) -->
+            <div id="admin-photo-adder" style="display: none; margin-bottom: 20px; background: #1f2937; padding: 15px; border-radius: 8px;">
+                <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 10px;">Admin: Add New Photo</h3>
+                <input type="text" id="new-photo-url" placeholder="Paste image link here..." style="width: 70%; padding: 8px; border-radius: 4px; border: none;">
+                <button onclick="addGalleryPhoto()" style="padding: 8px 15px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Photo</button>
+            </div>
+
+            <div id="gallery-container" class="gallery">
+                <p>Loading photos...</p>
             </div>
         </div>
     </section>
@@ -54,8 +54,6 @@
         <div class="container">
             <h1 class="page-title">Protostars Newsletters</h1>
             <p class="subtitle">Written, edited, and created entirely by our amazing youth members.</p>
-            
-            <!-- Newsletters will be automatically injected here by JavaScript -->
             <div id="newsletter-container" class="newsletter-grid"></div>
         </div>
     </section>
@@ -64,16 +62,13 @@
     <section id="events" class="page-section">
         <div class="container">
             <h1 class="page-title">Upcoming Events & Volunteering</h1>
-            <p>Sign up to volunteer below. Check the SJAA calendar to see which events we will be attending!</p>
+            <p style="margin-bottom: 30px;">Sign up to volunteer below. Check the SJAA calendar to see which events we will be attending!</p>
             
             <div class="events-layout">
-                <!-- Google Calendar Embed (Updated with your link) -->
                 <div class="calendar-wrapper">
                     <h3>SJAA Calendar</h3>
                     <iframe src="https://calendar.google.com/calendar/embed?src=c_4779ddc46fda914aaa8045b916044a480265c50bb4642df9420923706837a63e%40group.calendar.google.com&amp;ctz=America%2FLos_Angeles" style="border: 0" width="100%" height="450" frameborder="0" scrolling="no"></iframe>
                 </div>
-
-                <!-- Google Sheet Embed -->
                 <div class="sheet-wrapper">
                     <h3>Volunteer Sign-up Sheet</h3>
                     <iframe src="https://docs.google.com/spreadsheets/d/1pDj7KyDvI7gd7yUaFsRoeTWmaHVVm1aeIMpEbTju6Sc/htmlembed?gid=1626045843&widget=true&headers=false" width="100%" height="450"></iframe>
@@ -82,11 +77,49 @@
         </div>
     </section>
 
+    <!-- OFFICER BIO MODAL -->
+    <div id="bio-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <img id="modal-img" src="" alt="Officer Photo">
+            <h2 id="modal-name">Name</h2>
+            <h3 id="modal-role" style="color: #60a5fa; margin-bottom: 15px;">Role</h3>
+            <p id="modal-bio">Bio goes here...</p>
+
+            <!-- Admin Edit Form (Hidden by default) -->
+            <div id="admin-edit-form" style="display: none; margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <h3 style="color: #f59e0b; font-size: 1rem; margin-bottom: 10px;">Admin: Edit This Officer</h3>
+                <input type="text" id="edit-img" placeholder="Paste new profile picture link..." style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: none;">
+                <textarea id="edit-bio-text" placeholder="Write new bio here..." rows="4" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: none; font-family: inherit;"></textarea>
+                <button onclick="saveOfficerUpdate()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%;">Save Changes to Database</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+            <h2 style="color: #fff; margin-bottom: 20px;">Officer Login</h2>
+            <input type="email" id="login-email" placeholder="Email Address" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+            <input type="password" id="login-pass" placeholder="Password" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+            <button onclick="loginUser()" style="width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Sign In</button>
+            <p id="login-error" style="color: #ef4444; margin-top: 15px;"></p>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <p>Contact us: <a href="mailto:sjaaprotostars@gmail.com">sjaaprotostars@gmail.com</a></p>
+        <p style="margin-top: 15px;"><a href="#" onclick="openLoginModal()" style="font-size: 0.8rem; color: #4b5563;">Admin Login</a></p>
     </footer>
 
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- Custom App Logic -->
     <script src="app.js"></script>
 </body>
 </html>
